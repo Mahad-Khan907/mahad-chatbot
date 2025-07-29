@@ -1,0 +1,29 @@
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# dotenv file (contains secrets like API keys)
+.env
+
+# VS Code / IDE settings
+.vscode/
+.idea/
+
+# Chainlit logs or generated files (if any)
+chainlit.md
+*.log
+
+# Railway build cache (optional)
+.build/
