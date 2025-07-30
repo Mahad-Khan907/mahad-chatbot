@@ -1,8 +1,9 @@
+
 import os
 from dotenv import load_dotenv
 from agents import Agent, RunConfig, Runner, AsyncOpenAI, OpenAIChatCompletionsModel
 import chainlit as cl
-from openai.types.responses import ResponseTextDeltaEvent
+
 
 load_dotenv()
 gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -41,29 +42,24 @@ async def start():
 
 @cl.on_message
 async def message(message: cl.Message):
+    response = cl.Message(content="Thinking..")
+    await response.send()
     history = cl.user_session.get("chat history") or []
     history.append({"role": "user", "content": message.content})
-
-    response = cl.Message(content="")
-    await response.send()
 
     agent = cl.user_session.get("agent")
     config = cl.user_session.get("config")
 
-    result = Runner.run_streamed(
+    # Run synchronously, get the final output
+    result = Runner.run_sync(
         agent,
         input=history,
         run_config=config
     )
 
-    async for event in result.stream_events():
-        try:
-            if event.type == "raw_response_event":
-                delta = getattr(event.data, "delta", None)
-                if delta:
-                    await response.stream_token(delta)
-        except Exception as e:
-            print(f"Stream event error: {e}")
+    # Send the response to the user
+    await cl.Message(content=result.final_output).send()
 
-    history.append({"role": "user", "content": result.final_output})
+    # Add assistant's response to history
+    history.append({"role": "assistant", "content": result.final_output})
     cl.user_session.set("chat history", history)
