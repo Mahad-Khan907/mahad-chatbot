@@ -57,7 +57,13 @@ async def message(message: cl.Message):
     )
 
     async for event in result.stream_events():
-        if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
-            await response.stream_token(event.data.delta)
+        try:
+            if event.type == "raw_response_event":
+                delta = getattr(event.data, "delta", None)
+                if delta:
+                    await response.stream_token(delta)
+        except Exception as e:
+            print(f"Stream event error: {e}")
+
     history.append({"role": "user", "content": result.final_output})
-    cl.user_session.set("history", history)
+    cl.user_session.set("chat history", history)
